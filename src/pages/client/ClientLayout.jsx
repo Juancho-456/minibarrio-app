@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { to: '/perfil/resenas', label: 'Mis reseñas', icon: 'star' },
   { to: '/perfil/datos', label: 'Datos personales', icon: 'user' },
   { to: '/perfil/notificaciones', label: 'Notificaciones', icon: 'bell' },
+  { to: '/perfil/configuracion', label: 'Configuración', icon: 'gear' },
 ]
 
 function inicialesDe(nombre) {

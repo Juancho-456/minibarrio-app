@@ -76,7 +76,7 @@ function estadoApertura(horarios) {
 
 const ESTADO_APERTURA_STYLES = {
   abierto: { label: 'Abierto', color: 'var(--sage-text)' },
-  'cierra-pronto': { label: 'Cierra pronto', color: 'oklch(45% 0.11 75)' },
+  'cierra-pronto': { label: 'Cierra pronto', color: 'var(--warning-text)' },
   cerrado: { label: 'Cerrado', color: 'var(--text-faint)' },
 }
 

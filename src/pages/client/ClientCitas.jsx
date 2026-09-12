@@ -7,8 +7,8 @@ const HORA = new Intl.DateTimeFormat('es-CO', { hour: 'numeric', minute: '2-digi
 
 const ESTADO_STYLES = {
   confirmada: { bg: 'var(--sage-soft)', text: 'var(--sage-text)', label: 'Confirmada' },
-  pendiente: { bg: 'var(--warning-soft)', text: 'oklch(45% 0.11 75)', label: 'Pendiente' },
-  cancelada: { bg: 'oklch(93% 0.035 25)', text: 'var(--danger)', label: 'Cancelada' },
+  pendiente: { bg: 'var(--warning-soft)', text: 'var(--warning-text)', label: 'Pendiente' },
+  cancelada: { bg: 'var(--danger-soft)', text: 'var(--danger)', label: 'Cancelada' },
   completada: { bg: 'var(--surface-2)', text: 'var(--text-muted)', label: 'Completada' },
 }
 

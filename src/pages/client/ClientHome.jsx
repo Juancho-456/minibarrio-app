@@ -32,7 +32,7 @@ function formatCompacto(precio) {
 
 const ESTADO_APERTURA = {
   abierto: { label: 'Abierto', bg: 'var(--sage-soft)', text: 'var(--sage-text)' },
-  'cierra-pronto': { label: 'Cierra pronto', bg: 'var(--warning-soft)', text: 'oklch(45% 0.11 75)' },
+  'cierra-pronto': { label: 'Cierra pronto', bg: 'var(--warning-soft)', text: 'var(--warning-text)' },
   cerrado: { label: 'Cerrado', bg: 'var(--surface-2)', text: 'var(--text-faint)' },
 }
 
@@ -317,7 +317,7 @@ export default function ClientHome() {
             <div
               style={{
                 position: 'relative', height: 300, borderRadius: 'var(--radius-lg)', overflow: 'hidden',
-                background: 'linear-gradient(135deg, oklch(93% 0.02 165), oklch(96% 0.012 80))',
+                background: 'var(--map-gradient)',
                 border: '1px solid var(--border)',
               }}
             >

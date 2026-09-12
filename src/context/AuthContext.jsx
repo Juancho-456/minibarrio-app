@@ -15,7 +15,7 @@ import {
   signOut,
   updateProfile,
 } from 'firebase/auth'
-import { doc, serverTimestamp, setDoc, getDoc } from 'firebase/firestore'
+import { doc, serverTimestamp, setDoc, getDoc, updateDoc } from 'firebase/firestore'
 import { auth, db } from '../firebase/config'
 
 const AuthContext = createContext(null)
@@ -31,6 +31,15 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null)
   const [role, setRole] = useState(null) // 'cliente' | 'propietario' | null
   const [loading, setLoading] = useState(true)
+  // Preferencia de modo oscuro del CLIENTE (persistida en su perfil de
+  // Firestore para que se mantenga si inicia sesión de nuevo). Aplica a toda
+  // la vitrina y su panel, pero nunca al panel del negocio. Al cerrar sesión
+  // vuelve a false: el modo oscuro es de la cuenta, no del navegador.
+  const [modoOscuro, setModoOscuro] = useState(false)
+  // Preferencia de modo oscuro del PANEL DEL PROPIETARIO — independiente de
+  // la anterior: solo afecta a /panel y nunca se filtra al resto del sitio
+  // (ver el efecto de tema en App.jsx).
+  const [modoOscuroPanel, setModoOscuroPanel] = useState(false)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -38,13 +47,36 @@ export function AuthProvider({ children }) {
       if (user) {
         const snap = await getDoc(doc(db, 'usuarios', user.uid))
         setRole(snap.exists() ? snap.data().rol : null)
+        setModoOscuro(snap.exists() ? !!snap.data().modoOscuro : false)
+        setModoOscuroPanel(snap.exists() ? !!snap.data().modoOscuroPanel : false)
       } else {
         setRole(null)
+        setModoOscuro(false)
+        setModoOscuroPanel(false)
       }
       setLoading(false)
     })
     return unsubscribe
   }, [])
+
+  /**
+   * Guarda la preferencia de modo oscuro del cliente en su perfil (para que
+   * se mantenga entre sesiones/dispositivos) y la aplica de inmediato.
+   */
+  async function actualizarModoOscuro(valor) {
+    setModoOscuro(valor)
+    if (currentUser) {
+      await updateDoc(doc(db, 'usuarios', currentUser.uid), { modoOscuro: valor })
+    }
+  }
+
+  /** Igual que actualizarModoOscuro, pero para la preferencia del panel del propietario. */
+  async function actualizarModoOscuroPanel(valor) {
+    setModoOscuroPanel(valor)
+    if (currentUser) {
+      await updateDoc(doc(db, 'usuarios', currentUser.uid), { modoOscuroPanel: valor })
+    }
+  }
 
   /**
    * Registra un cliente (RF-01, HU-10 análogo para clientes).
@@ -122,6 +154,8 @@ export function AuthProvider({ children }) {
     const snap = await getDoc(doc(db, 'usuarios', cred.user.uid))
     const rol = snap.exists() ? snap.data().rol : null
     setRole(rol)
+    setModoOscuro(snap.exists() ? !!snap.data().modoOscuro : false)
+    setModoOscuroPanel(snap.exists() ? !!snap.data().modoOscuroPanel : false)
     return rol
   }
 
@@ -140,6 +174,8 @@ export function AuthProvider({ children }) {
     if (snap.exists()) {
       const rol = snap.data().rol
       setRole(rol)
+      setModoOscuro(!!snap.data().modoOscuro)
+      setModoOscuroPanel(!!snap.data().modoOscuroPanel)
       return rol
     }
 
@@ -164,7 +200,10 @@ export function AuthProvider({ children }) {
     return signOut(auth)
   }
 
-  const value = { currentUser, role, loading, registerClient, registerBusinessOwner, login, loginWithGoogle, logout }
+  const value = {
+    currentUser, role, loading, modoOscuro, actualizarModoOscuro, modoOscuroPanel, actualizarModoOscuroPanel,
+    registerClient, registerBusinessOwner, login, loginWithGoogle, logout,
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

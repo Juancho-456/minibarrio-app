@@ -196,7 +196,7 @@ export default function ClientResumen() {
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
               }}
             >
-              <div style={{ fontSize: 12, color: 'oklch(40% 0.1 75)' }}>
+              <div style={{ fontSize: 12, color: 'var(--warning-text)' }}>
                 {serviciosPorId[`${pendientePorCalificar.negocioId}:${pendientePorCalificar.servicioId}`]?.nombre || 'Cita'} en{' '}
                 {negociosPorId[pendientePorCalificar.negocioId]?.nombre || 'negocio'} — pendiente por calificar
               </div>
