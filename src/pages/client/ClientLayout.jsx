@@ -132,7 +132,7 @@ export default function ClientLayout() {
   }
 
   const desde = perfil?.creadoEn?.toDate
-    ? new Intl.DateTimeFormat('es-CO', { month: 'short', year: 'numeric' }).format(perfil.creadoEn.toDate())
+    ? new Intl.DateTimeFormat('es-CO', { month: 'long', year: 'numeric' }).format(perfil.creadoEn.toDate())
     : null
 
   return (
@@ -182,10 +182,10 @@ export default function ClientLayout() {
               {inicialesDe(perfil?.nombre || currentUser?.displayName)}
             </span>
             <div style={{ fontWeight: 800, fontSize: 15, marginTop: 10 }}>{perfil?.nombre || currentUser?.displayName}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 2 }}>
+            <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 5, marginBottom: 18, lineHeight: 1.4 }}>
               Cliente{desde ? ` · desde ${desde}` : ''}
             </div>
-            <Link to="/perfil/datos" className="btn btn-outline" style={{ width: '100%', marginTop: 14, padding: '8px 0', fontSize: 12.5 }}>
+            <Link to="/perfil/datos" className="btn btn-outline" style={{ width: '100%', padding: '8px 0', fontSize: 12.5 }}>
               Editar perfil
             </Link>
           </div>
