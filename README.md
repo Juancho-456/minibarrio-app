@@ -54,14 +54,9 @@ cd minibarrio-app
 npm install
 ```
 
-Configura las variables de entorno con las credenciales de Firebase:
-
-```bash
-cp .env.example .env
-```
-
-Edita `.env` con los valores de tu proyecto de Firebase (Firebase Console →
-Configuración del proyecto → Tus apps → SDK setup and configuration → Config):
+Crea un archivo `.env` en la raíz del proyecto con las credenciales de tu
+proyecto de Firebase (Firebase Console → Configuración del proyecto → Tus
+apps → SDK setup and configuration → Config):
 
 ```
 VITE_FIREBASE_API_KEY=
