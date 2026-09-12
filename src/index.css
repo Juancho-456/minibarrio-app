@@ -43,6 +43,8 @@
 
   /* Decorativo */
   --map-gradient: linear-gradient(135deg, oklch(93% 0.02 165), oklch(96% 0.012 80));
+  --today-bg: oklch(96.5% 0.03 55);
+  --weekend-bg: oklch(96.5% 0.012 50);
 
   /* Radios y sombras */
   --radius-sm: 8px;
@@ -82,6 +84,8 @@
   --danger-soft: oklch(30% 0.09 25);
 
   --map-gradient: linear-gradient(135deg, oklch(27% 0.025 165), oklch(25% 0.014 70));
+  --today-bg: oklch(34% 0.05 55);
+  --weekend-bg: oklch(30% 0.014 55);
 
   --shadow-sm: 0 1px 2px oklch(0% 0 0 / 0.35), 0 1px 1px oklch(0% 0 0 / 0.25);
   --shadow-md: 0 8px 24px oklch(0% 0 0 / 0.45), 0 2px 6px oklch(0% 0 0 / 0.3);

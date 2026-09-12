@@ -182,9 +182,9 @@ export default function OwnerAgenda() {
                     background: seleccionado
                       ? 'var(--accent-soft)'
                       : esHoy
-                      ? 'oklch(96.5% 0.03 55)'
+                      ? 'var(--today-bg)'
                       : esFinDeSemana
-                      ? 'oklch(96.5% 0.012 50)'
+                      ? 'var(--weekend-bg)'
                       : 'var(--surface)',
                     border: `1px solid ${seleccionado ? 'var(--accent)' : 'var(--border)'}`,
                   }}
