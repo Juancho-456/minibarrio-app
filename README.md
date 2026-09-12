@@ -49,7 +49,7 @@ secuencia y despliegue).
 ## Instalación
 
 ```bash
-git clone https://github.com/DiegoAlejandro04/minibarrio-app.git
+git clone https://github.com/Juancho-456/minibarrio-app.git
 cd minibarrio-app
 npm install
 ```
