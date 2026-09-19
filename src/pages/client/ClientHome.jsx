@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { collection, collectionGroup, getDocs, onSnapshot } from 'firebase/firestore'
+import { collection, collectionGroup, onSnapshot } from 'firebase/firestore'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { db } from '../../firebase/config'
 
@@ -81,7 +81,7 @@ export default function ClientHome() {
   }, [])
 
   useEffect(() => {
-    getDocs(collectionGroup(db, 'resenas')).then((snap) => {
+    const unsub = onSnapshot(collectionGroup(db, 'resenas'), (snap) => {
       const acc = {}
       snap.docs.forEach((d) => {
         const negocioId = d.ref.parent.parent.id
@@ -92,10 +92,11 @@ export default function ClientHome() {
       })
       setRatings(acc)
     })
+    return unsub
   }, [])
 
   useEffect(() => {
-    getDocs(collectionGroup(db, 'servicios')).then((snap) => {
+    const unsub = onSnapshot(collectionGroup(db, 'servicios'), (snap) => {
       const acc = {}
       snap.docs.forEach((d) => {
         const data = d.data()
@@ -106,6 +107,7 @@ export default function ClientHome() {
       })
       setPreciosMin(acc)
     })
+    return unsub
   }, [])
 
   const negociosConDatos = useMemo(
