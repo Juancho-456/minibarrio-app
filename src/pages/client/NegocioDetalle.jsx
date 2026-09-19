@@ -6,6 +6,7 @@ import {
 import { useAuth } from '../../context/AuthContext.jsx'
 import { db } from '../../firebase/config'
 import Icon from '../../components/Icon.jsx'
+import CalificarModal from '../../components/CalificarModal.jsx'
 
 // Perfil público del negocio + reserva de citas (RF-05, RF-06, RF-07, RF-08,
 // RF-10). La reserva exige al menos un día de anticipación (no el mismo
@@ -114,6 +115,7 @@ export default function NegocioDetalle() {
   const [turnosExpandidos, setTurnosExpandidos] = useState(false)
   const [tab, setTab] = useState('general')
   const [esFavorito, setEsFavorito] = useState(false)
+  const [calificando, setCalificando] = useState(false)
 
   useEffect(() => {
     const unsubs = [
@@ -192,6 +194,11 @@ export default function NegocioDetalle() {
     if (resenas.length === 0) return null
     return resenas.reduce((sum, r) => sum + (r.calificacion || 0), 0) / resenas.length
   }, [resenas])
+
+  const yaCalifique = useMemo(
+    () => !!currentUser && resenas.some((r) => r.clienteId === currentUser.uid),
+    [resenas, currentUser]
+  )
 
   const servicioSeleccionado = useMemo(
     () => servicios.find((s) => s.id === servicioId) || null,
@@ -464,7 +471,29 @@ export default function NegocioDetalle() {
 
           {tab === 'resenas' && (
             <div>
-              <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 4 }}>Reseñas de clientes</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <div style={{ fontWeight: 800, fontSize: 17 }}>Reseñas de clientes</div>
+                {role !== 'propietario' && (
+                  yaCalifique ? (
+                    <span style={{ fontSize: 12, color: 'var(--text-faint)', fontWeight: 700 }}>Ya calificaste este negocio</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!currentUser) {
+                          navigate('/login', { state: { from: { pathname: `/negocio/${id}` } } })
+                          return
+                        }
+                        setCalificando(true)
+                      }}
+                      className="btn btn-outline"
+                      style={{ padding: '7px 14px', fontSize: 12.5 }}
+                    >
+                      {currentUser ? 'Escribir una reseña' : 'Inicia sesión para calificar'}
+                    </button>
+                  )
+                )}
+              </div>
               {resenas.length === 0 ? (
                 <p style={{ color: 'var(--text-muted)', fontSize: 13.5, marginTop: 8 }}>Este negocio todavía no tiene reseñas.</p>
               ) : (
@@ -642,6 +671,10 @@ export default function NegocioDetalle() {
         </div>
       </div>
       </div>
+
+      {calificando && (
+        <CalificarModal negocio={negocio} onClose={() => setCalificando(false)} />
+      )}
     </div>
   )
 }
