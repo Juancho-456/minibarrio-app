@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
+import { geocodeDireccion } from '../maps/googleMaps.js'
 
 const initialForm = {
   nombrePropietario: '',
@@ -42,7 +43,17 @@ export default function RegisterBusiness() {
 
     setLoading(true)
     try {
-      await registerBusinessOwner(form)
+      // La ubicación en el mapa es un extra visual (RF-06): si la
+      // geocodificación falla (dirección no reconocida, key sin cuota, etc.)
+      // el registro del negocio no debe bloquearse por eso.
+      let ubicacion = null
+      try {
+        ubicacion = await geocodeDireccion(form.direccion)
+      } catch (geoErr) {
+        // eslint-disable-next-line no-console
+        console.error(geoErr)
+      }
+      await registerBusinessOwner({ ...form, ubicacion })
       navigate('/panel', { replace: true })
     } catch (err) {
       setError(mapAuthError(err))

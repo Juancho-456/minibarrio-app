@@ -72,6 +72,20 @@ seguridad de Firestore ya están definidas en `firestore.rules` — despliégala
 a tu proyecto con `firebase deploy --only firestore:rules` (requiere el
 [Firebase CLI](https://firebase.google.com/docs/cli)).
 
+### Mapa (Google Maps)
+
+El mapa de la vitrina pública (`/`) usa la API de Google Maps para mostrar
+la ubicación real de cada negocio. Necesitas una API key con **Maps
+JavaScript API** y **Geocoding API** habilitadas (Google Cloud Console →
+APIs y servicios), agregada a tu `.env`:
+
+```
+VITE_GOOGLE_MAPS_API_KEY=
+```
+
+Sin esta variable, la app sigue funcionando normalmente — el mapa solo
+muestra un aviso de que no pudo cargar.
+
 ## Uso
 
 ```bash

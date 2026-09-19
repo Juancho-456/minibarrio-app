@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { collection, collectionGroup, onSnapshot } from 'firebase/firestore'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { db } from '../../firebase/config'
+import { geocodeDireccion, loadGoogleMaps } from '../../maps/googleMaps.js'
 
 // Vitrina pública de negocios (RF-05 búsqueda, RF-06 mapa, RF-09
 // recomendaciones, RF-12 portafolio visible sin sesión). Muestra datos
@@ -12,15 +13,6 @@ import { db } from '../../firebase/config'
 // descripción hasta que exista un motor de recomendación real (Sprint 2).
 
 const FILTER_CHIPS = ['Corte fade', 'Barba', 'Cejas', 'Color', 'Niños', 'Clásico', 'Domicilio']
-
-const PIN_POSITIONS = [
-  { top: '28%', left: '38%' },
-  { top: '18%', left: '68%' },
-  { top: '46%', left: '78%' },
-  { top: '58%', left: '30%' },
-  { top: '72%', left: '58%' },
-  { top: '12%', left: '18%' },
-]
 
 const COP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
 
@@ -123,6 +115,71 @@ export default function ClientHome() {
     }),
     [negocios, ratings, preciosMin]
   )
+
+  // Mapa real de Google (RF-06). Usa negocio.ubicacion (lat/lng) cuando ya
+  // fue geocodificada al registrar el negocio (ver RegisterBusiness.jsx); si
+  // un negocio antiguo no la tiene, geocodifica su dirección al vuelo aquí
+  // mismo (sin persistirla — solo el propio dueño puede escribir su
+  // documento, ver firestore.rules).
+  const mapDivRef = useRef(null)
+  const mapRef = useRef(null)
+  const markersRef = useRef([])
+  const [mapError, setMapError] = useState(false)
+
+  useEffect(() => {
+    let cancelado = false
+
+    loadGoogleMaps()
+      .then((maps) => {
+        if (cancelado || !mapDivRef.current) return
+
+        if (!mapRef.current) {
+          mapRef.current = new maps.Map(mapDivRef.current, {
+            center: { lat: 4.711, lng: -74.0721 }, // Bogotá — se ajusta con fitBounds al ubicar los negocios
+            zoom: 12,
+            disableDefaultUI: true,
+            zoomControl: true,
+          })
+        }
+
+        markersRef.current.forEach((m) => m.setMap(null))
+        markersRef.current = []
+
+        const bounds = new maps.LatLngBounds()
+
+        negociosConDatos.forEach(async (n) => {
+          let posicion = n.ubicacion
+          if (!posicion) {
+            if (!n.direccion) return
+            try {
+              posicion = await geocodeDireccion(n.direccion)
+            } catch {
+              return
+            }
+          }
+          if (cancelado || !mapRef.current) return
+
+          const precio = formatCompacto(n.precioDesde)
+          const marker = new maps.Marker({
+            map: mapRef.current,
+            position: posicion,
+            title: precio ? `${n.nombre} · ${precio}` : n.nombre,
+          })
+          marker.addListener('click', () => navigate(`/negocio/${n.id}`))
+          markersRef.current.push(marker)
+
+          bounds.extend(posicion)
+          mapRef.current.fitBounds(bounds, 60)
+        })
+      })
+      .catch((err) => {
+        setMapError(true)
+        // eslint-disable-next-line no-console
+        console.error(err)
+      })
+
+    return () => { cancelado = true }
+  }, [negociosConDatos, navigate])
 
   const resultados = useMemo(() => {
     if (!terminoActivo) return negociosConDatos
@@ -323,26 +380,20 @@ export default function ClientHome() {
                 border: '1px solid var(--border)',
               }}
             >
-              <svg width="100%" height="100%" style={{ position: 'absolute', inset: 0, opacity: 0.5 }}>
-                <line x1="0" y1="40%" x2="100%" y2="40%" stroke="white" strokeWidth="6" />
-                <line x1="55%" y1="0" x2="55%" y2="100%" stroke="white" strokeWidth="6" />
-              </svg>
+              <div ref={mapDivRef} style={{ position: 'absolute', inset: 0 }} />
 
-              {negociosConDatos.slice(0, PIN_POSITIONS.length).map((n, i) => (
+              {mapError && (
                 <div
-                  key={n.id}
-                  title={n.nombre}
                   style={{
-                    position: 'absolute', top: PIN_POSITIONS[i].top, left: PIN_POSITIONS[i].left, transform: 'translate(-50%, -100%)',
-                    background: 'var(--ink)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 9px',
-                    borderRadius: 999, whiteSpace: 'nowrap', boxShadow: 'var(--shadow-sm)',
+                    position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--text-faint)', fontSize: 13, textAlign: 'center', padding: '0 30px',
                   }}
                 >
-                  {formatCompacto(n.precioDesde) || n.nombre.slice(0, 12)}
+                  No se pudo cargar el mapa en este momento.
                 </div>
-              ))}
+              )}
 
-              {negociosConDatos.length === 0 && !loading && (
+              {!mapError && negociosConDatos.length === 0 && !loading && (
                 <div
                   style={{
                     position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',

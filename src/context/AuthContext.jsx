@@ -112,6 +112,7 @@ export function AuthProvider({ children }) {
     direccion,
     descripcion,
     whatsapp,
+    ubicacion, // { lat, lng } | null — geocodificada en RegisterBusiness.jsx (RF-06)
   }) {
     const cred = await createUserWithEmailAndPassword(auth, correo, contrasena)
     await updateProfile(cred.user, { displayName: nombrePropietario })
@@ -133,6 +134,7 @@ export function AuthProvider({ children }) {
       nombre: nombreNegocio,
       categoria: 'Barbería y estética', // alcance fijo del prototipo
       direccion,
+      ubicacion: ubicacion || null,
       descripcion,
       canalesContacto: { whatsapp, telefono, catalogo: true }, // RF-11 (≥3 canales)
       horarios: {
