@@ -4,6 +4,7 @@ import { collection, collectionGroup, onSnapshot } from 'firebase/firestore'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { db } from '../../firebase/config'
 import { geocodeDireccion, loadGoogleMaps } from '../../maps/googleMaps.js'
+import useIsMobile from '../../hooks/useIsMobile.js'
 
 // Vitrina pública de negocios (RF-05 búsqueda, RF-06 mapa, RF-09
 // recomendaciones, RF-12 portafolio visible sin sesión). Muestra datos
@@ -65,6 +66,7 @@ function estadoApertura(horarios) {
 export default function ClientHome() {
   const { currentUser, role, logout } = useAuth()
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
 
   const [negocios, setNegocios] = useState([])
   const [ratings, setRatings] = useState({}) // negocioId -> { suma, total }
@@ -230,7 +232,7 @@ export default function ClientHome() {
       <header
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '14px 32px', background: 'var(--surface)', borderBottom: '1px solid var(--border)', flexWrap: 'wrap', gap: 12,
+          padding: isMobile ? '14px 16px' : '14px 32px', background: 'var(--surface)', borderBottom: '1px solid var(--border)', flexWrap: 'wrap', gap: 12,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
@@ -247,23 +249,27 @@ export default function ClientHome() {
               <span style={{ color: 'var(--text)' }}>Mini</span><span style={{ color: 'var(--accent)' }}>Barrio</span>
             </span>
           </Link>
-          <nav style={{ display: 'flex', gap: 20, fontSize: 13.5, fontWeight: 700 }}>
-            <a href="#resultados" style={{ color: 'var(--text-muted)' }}>Explorar</a>
-            <span style={{ color: 'var(--text-faint)', cursor: 'not-allowed' }} title="Próximamente">Cómo funciona</span>
-            <span style={{ color: 'var(--text-faint)', cursor: 'not-allowed' }} title="Por ahora solo barberías y estética">Categorías</span>
-            <Link to="/registro/negocio" style={{ color: 'var(--text-muted)' }}>Para negocios</Link>
-          </nav>
+          {!isMobile && (
+            <nav style={{ display: 'flex', gap: 20, fontSize: 13.5, fontWeight: 700 }}>
+              <a href="#resultados" style={{ color: 'var(--text-muted)' }}>Explorar</a>
+              <span style={{ color: 'var(--text-faint)', cursor: 'not-allowed' }} title="Próximamente">Cómo funciona</span>
+              <span style={{ color: 'var(--text-faint)', cursor: 'not-allowed' }} title="Por ahora solo barberías y estética">Categorías</span>
+              <Link to="/registro/negocio" style={{ color: 'var(--text-muted)' }}>Para negocios</Link>
+            </nav>
+          )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <span
-            style={{
-              fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)', background: 'var(--surface-2)',
-              padding: '7px 12px', borderRadius: 999,
-            }}
-          >
-            Britalia, Kennedy
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+          {!isMobile && (
+            <span
+              style={{
+                fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)', background: 'var(--surface-2)',
+                padding: '7px 12px', borderRadius: 999,
+              }}
+            >
+              Britalia, Kennedy
+            </span>
+          )}
           {currentUser ? (
             <>
               {role === 'propietario' && (
@@ -302,8 +308,8 @@ export default function ClientHome() {
         </div>
       </header>
 
-      <section style={{ background: 'var(--surface-2)', padding: '48px 32px' }}>
-        <div style={{ maxWidth: 1160, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'start' }}>
+      <section style={{ background: 'var(--surface-2)', padding: isMobile ? '28px 16px' : '48px 32px' }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 24 : 40, alignItems: 'start' }}>
           <div>
             <span
               style={{
@@ -313,7 +319,7 @@ export default function ClientHome() {
             >
               PROTOTIPO · BRITALIA, KENNEDY
             </span>
-            <h1 style={{ fontSize: 34, fontWeight: 800, lineHeight: 1.15, marginTop: 16 }}>
+            <h1 style={{ fontSize: isMobile ? 26 : 34, fontWeight: 800, lineHeight: 1.15, marginTop: 16 }}>
               La vitrina digital de los microcomercios de tu barrio
             </h1>
             <p style={{ color: 'var(--text-muted)', fontSize: 15, marginTop: 12, lineHeight: 1.6 }}>
@@ -366,7 +372,7 @@ export default function ClientHome() {
               ))}
             </div>
 
-            <div style={{ display: 'flex', gap: 36, marginTop: 30 }}>
+            <div style={{ display: 'flex', gap: 36, marginTop: 30, flexWrap: 'wrap' }}>
               <div>
                 <div style={{ fontSize: 26, fontWeight: 800 }}>{negocios.length}</div>
                 <div style={{ fontSize: 12.5, color: 'var(--text-faint)' }}>barberías registradas</div>
@@ -385,7 +391,7 @@ export default function ClientHome() {
           <div>
             <div
               style={{
-                position: 'relative', height: 300, borderRadius: 'var(--radius-lg)', overflow: 'hidden',
+                position: 'relative', height: isMobile ? 220 : 300, borderRadius: 'var(--radius-lg)', overflow: 'hidden',
                 background: 'var(--map-gradient)',
                 border: '1px solid var(--border)',
               }}
@@ -416,7 +422,7 @@ export default function ClientHome() {
             </div>
 
             {destacado && (
-              <div className="card" style={{ marginTop: -40, marginLeft: 16, marginRight: 16, position: 'relative', padding: 14, display: 'flex', gap: 12, alignItems: 'center' }}>
+              <div className="card" style={{ marginTop: isMobile ? -28 : -40, marginLeft: isMobile ? 8 : 16, marginRight: isMobile ? 8 : 16, position: 'relative', padding: 14, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ width: 46, height: 46, borderRadius: 10, background: 'var(--surface-2)', flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -449,7 +455,7 @@ export default function ClientHome() {
         </div>
       </section>
 
-      <section id="resultados" style={{ maxWidth: 1160, margin: '0 auto', padding: '40px 32px' }}>
+      <section id="resultados" style={{ maxWidth: 1160, margin: '0 auto', padding: isMobile ? '28px 16px' : '40px 32px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
           <div>
             <div style={{ fontSize: 20, fontWeight: 800 }}>

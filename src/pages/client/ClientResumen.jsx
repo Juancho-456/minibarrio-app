@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import Icon from '../../components/Icon.jsx'
 import CalificarModal from '../../components/CalificarModal.jsx'
+import useIsMobile from '../../hooks/useIsMobile.js'
 
 // Panel del cliente — vista "Resumen". Conectado a datos reales de
 // Firestore (citas, favoritos, reseñas) vía el contexto de ClientLayout.
@@ -18,6 +19,7 @@ export default function ClientResumen() {
   const {
     perfil, citas, favoritos, resenas, negociosPorId, serviciosPorId, ratings, toggleFavorito, cancelarCita,
   } = useOutletContext()
+  const isMobile = useIsMobile()
 
   const [calificando, setCalificando] = useState(null) // negocio | null
   const [cancelandoId, setCancelandoId] = useState(null)
@@ -76,7 +78,7 @@ export default function ClientResumen() {
         Aquí puedes revisar tus citas, favoritos y reseñas.
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16, marginTop: 22 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))', gap: 16, marginTop: 22 }}>
         <StatTile icon="calendar" value={citasCompletadas} label="Citas completadas" />
         <StatTile icon="heart" value={favoritos.length} label="Negocios favoritos" />
         <StatTile icon="star" value={resenas.length} label="Reseñas escritas" />
@@ -86,7 +88,7 @@ export default function ClientResumen() {
         <div
           className="card"
           style={{
-            marginTop: 16, padding: 16, display: 'flex', alignItems: 'center', gap: 14,
+            marginTop: 16, padding: 16, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14,
             background: 'var(--accent-soft)', borderColor: 'var(--accent)',
           }}
         >
@@ -127,7 +129,7 @@ export default function ClientResumen() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16, marginTop: 16, alignItems: 'start' }}>
         <div className="card" style={{ padding: 18 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
             <div style={{ fontWeight: 800, fontSize: 15 }}>Negocios favoritos</div>
@@ -220,7 +222,7 @@ export default function ClientResumen() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {historial.map((c) => (
-              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div key={c.id} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
                 <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--surface-2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)' }}>
                   <Icon name="calendar" size={15} />
                 </div>

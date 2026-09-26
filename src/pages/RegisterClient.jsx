@@ -79,7 +79,7 @@ export default function RegisterClient() {
       >
         ← Volver al inicio
       </Link>
-      <div className="card" style={{ width: 400, padding: 32 }}>
+      <div className="card" style={{ width: '100%', maxWidth: 400, padding: 32 }}>
         <div style={{ fontSize: 22, fontWeight: 800 }}>Crea tu cuenta de cliente</div>
         <div style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 6 }}>
           Regístrate para agendar y guardar tus barberías favoritas.
@@ -98,12 +98,12 @@ export default function RegisterClient() {
             <label style={{ fontSize: 12.5, fontWeight: 700 }}>Teléfono / WhatsApp</label>
             <input required value={form.telefono} onChange={update('telefono')} placeholder="300 000 0000" style={{ marginTop: 6 }} />
           </div>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+            <div style={{ flex: '1 1 140px' }}>
               <label style={{ fontSize: 12.5, fontWeight: 700 }}>Contraseña</label>
               <input type="password" required value={form.contrasena} onChange={update('contrasena')} placeholder="••••••••" style={{ marginTop: 6 }} />
             </div>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: '1 1 140px' }}>
               <label style={{ fontSize: 12.5, fontWeight: 700 }}>Confirmar</label>
               <input type="password" required value={form.confirmar} onChange={update('confirmar')} placeholder="••••••••" style={{ marginTop: 6 }} />
             </div>

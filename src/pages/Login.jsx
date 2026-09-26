@@ -66,7 +66,7 @@ export default function Login() {
       >
         ← Volver al inicio
       </Link>
-      <div className="card" style={{ width: 380, padding: 32 }}>
+      <div className="card" style={{ width: '100%', maxWidth: 380, padding: 32 }}>
         <div style={{ fontSize: 22, fontWeight: 800 }}>Inicia sesión en MiniBarrio</div>
         <div style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 6 }}>
           {isClient

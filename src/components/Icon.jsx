@@ -25,6 +25,7 @@ const ICON_PATHS = {
   user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0',
   moon: 'M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z',
   mail: 'M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM3 6l9 7 9-7',
+  menu: 'M3 6h18M3 12h18M3 18h18',
 }
 
 export default function Icon({ name, size = 18, filled = false }) {

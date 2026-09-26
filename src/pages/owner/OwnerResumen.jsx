@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom'
 import { collection, doc, getDoc, onSnapshot, query, where } from 'firebase/firestore'
 import { db } from '../../firebase/config'
 import Icon from '../../components/Icon.jsx'
+import useIsMobile from '../../hooks/useIsMobile.js'
 
 // Panel del comerciante — vista "Resumen" (RF-02, RF-07). Conectado a datos
 // reales del negocio vía onSnapshot (tiempo real).
@@ -40,6 +41,7 @@ function isSameMonth(a, b) {
 
 export default function OwnerResumen() {
   const { negocio, servicios, uid } = useOutletContext()
+  const isMobile = useIsMobile()
 
   const [citas, setCitas] = useState([])
   const [resenas, setResenas] = useState([])
@@ -214,7 +216,7 @@ export default function OwnerResumen() {
         </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))', gap: isMobile ? 12 : 16 }}>
         <StatTile
           icon="eye"
           label="Visitas al perfil"
@@ -242,7 +244,7 @@ export default function OwnerResumen() {
           sub={resenas.length === 0 ? 'Sin reseñas aún' : `${resenasNuevas} reseña${resenasNuevas === 1 ? '' : 's'} nueva${resenasNuevas === 1 ? '' : 's'}`}
         />
 
-        <div className="card" style={{ padding: '16px 18px' }}>
+        <div className="card" style={{ padding: '16px 18px', gridColumn: isMobile ? '1 / -1' : undefined }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
             <div style={{ fontSize: 12.5, color: 'var(--text-muted)', fontWeight: 700 }}>Ingresos estimados</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -282,7 +284,7 @@ export default function OwnerResumen() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16, marginTop: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.4fr 1fr', gap: 16, marginTop: 16 }}>
         <div className="card" style={{ padding: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
             <div>
@@ -360,6 +362,30 @@ export default function OwnerResumen() {
           <p style={{ color: 'var(--text-muted)', fontSize: 13.5 }}>
             Aún no has publicado servicios. Agrégalos desde &ldquo;Servicios&rdquo; en el menú.
           </p>
+        ) : isMobile ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {servicios.map((s) => (
+              <div key={s.id} className="card" style={{ padding: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{s.nombre}</div>
+                  <span
+                    style={{
+                      fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 999, flexShrink: 0,
+                      background: s.visible ? 'var(--sage-soft)' : 'var(--surface-2)',
+                      color: s.visible ? 'var(--sage-text)' : 'var(--text-faint)',
+                    }}
+                  >
+                    {s.visible ? 'Visible' : 'Oculto'}
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 10, fontSize: 12.5 }}>
+                  <Campo label="Duración" value={`${s.duracionMinutos} min`} />
+                  <Campo label="Precio" value={COP.format(s.precio || 0)} />
+                  <Campo label="Reservas (mes)" value={reservasPorServicio[s.id] || 0} />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
@@ -397,6 +423,15 @@ export default function OwnerResumen() {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+function Campo({ label, value }) {
+  return (
+    <div>
+      <div style={{ color: 'var(--text-faint)', fontSize: 10.5, textTransform: 'uppercase', fontWeight: 700 }}>{label}</div>
+      <div style={{ color: 'var(--text-muted)', marginTop: 2 }}>{value}</div>
     </div>
   )
 }

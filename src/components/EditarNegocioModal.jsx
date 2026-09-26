@@ -3,6 +3,7 @@ import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase/config'
 import Icon from './Icon.jsx'
 import ToggleIOS from './ToggleIOS.jsx'
+import useIsMobile from '../hooks/useIsMobile.js'
 
 // Modal de edición de la información pública del negocio (RF-06/RF-11):
 // nombre, descripción, dirección, contacto y horarios. Escribe directamente
@@ -25,6 +26,7 @@ const DIAS_VARIABLES = [
 ]
 
 export default function EditarNegocioModal({ negocio, uid, onClose }) {
+  const isMobile = useIsMobile()
   const [form, setForm] = useState({
     nombre: negocio.nombre || '',
     descripcion: negocio.descripcion || '',
@@ -136,12 +138,12 @@ export default function EditarNegocioModal({ negocio, uid, onClose }) {
         <label style={{ fontSize: 12.5, fontWeight: 700, display: 'block', marginTop: 14 }}>Dirección</label>
         <input value={form.direccion} onChange={update('direccion')} style={{ marginTop: 6 }} />
 
-        <div style={{ display: 'flex', gap: 12, marginTop: 14 }}>
-          <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 14 }}>
+          <div style={{ flex: '1 1 160px' }}>
             <label style={{ fontSize: 12.5, fontWeight: 700, display: 'block' }}>Correo de contacto</label>
             <input type="email" value={form.correo} onChange={update('correo')} placeholder="negocio@ejemplo.com" style={{ marginTop: 6 }} />
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: '1 1 160px' }}>
             <label style={{ fontSize: 12.5, fontWeight: 700, display: 'block' }}>Teléfono</label>
             <input type="tel" value={form.telefono} onChange={update('telefono')} style={{ marginTop: 6 }} />
           </div>
@@ -152,11 +154,19 @@ export default function EditarNegocioModal({ negocio, uid, onClose }) {
 
         <div style={{ fontSize: 12.5, fontWeight: 700, marginTop: 18, marginBottom: 8 }}>Horarios de atención</div>
         {DIAS_FIJOS.map((d) => (
-          <div key={d.key} style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
-            <span style={{ fontSize: 12.5, color: 'var(--text-muted)', width: 120, flexShrink: 0 }}>{d.label}</span>
-            <input type="time" value={form.horarios[d.key].apertura} onChange={updateHorario(d.key, 'apertura')} style={{ flex: 1, minWidth: 0 }} />
-            <span style={{ color: 'var(--text-faint)', flexShrink: 0 }}>–</span>
-            <input type="time" value={form.horarios[d.key].cierre} onChange={updateHorario(d.key, 'cierre')} style={{ flex: 1, minWidth: 0 }} />
+          <div
+            key={d.key}
+            style={{
+              display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+              alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? 4 : 10, marginTop: 8,
+            }}
+          >
+            <span style={{ fontSize: 12.5, color: 'var(--text-muted)', width: isMobile ? 'auto' : 120, flexShrink: 0 }}>{d.label}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <input type="time" value={form.horarios[d.key].apertura} onChange={updateHorario(d.key, 'apertura')} style={{ flex: 1, minWidth: 0 }} />
+              <span style={{ color: 'var(--text-faint)', flexShrink: 0 }}>–</span>
+              <input type="time" value={form.horarios[d.key].cierre} onChange={updateHorario(d.key, 'cierre')} style={{ flex: 1, minWidth: 0 }} />
+            </div>
           </div>
         ))}
 

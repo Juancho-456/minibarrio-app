@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom'
 import { addDoc, collection, deleteDoc, doc, updateDoc } from 'firebase/firestore'
 import { db } from '../../firebase/config'
 import Icon from '../../components/Icon.jsx'
+import useIsMobile from '../../hooks/useIsMobile.js'
 
 // Gestión de servicios del negocio (RF-03, RF-04). CRUD directo sobre
 // negocios/{uid}/servicios — permitido por firestore.rules para el dueño.
@@ -12,6 +13,7 @@ const FORM_INICIAL = { nombre: '', descripcion: '', precio: '', duracionMinutos:
 
 export default function OwnerServicios() {
   const { servicios, uid } = useOutletContext()
+  const isMobile = useIsMobile()
 
   const [form, setForm] = useState(FORM_INICIAL)
   const [editandoId, setEditandoId] = useState(null)
@@ -89,7 +91,7 @@ export default function OwnerServicios() {
         <div style={{ fontWeight: 800, fontSize: 14.5, marginBottom: 14 }}>
           {editandoId ? 'Editar servicio' : 'Agregar servicio'}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr 1fr', gap: 12 }}>
           <div>
             <label style={{ fontSize: 12, fontWeight: 700 }}>Nombre</label>
             <input value={form.nombre} onChange={update('nombre')} placeholder="Corte fade + estilizado" style={{ marginTop: 4 }} />
@@ -128,7 +130,7 @@ export default function OwnerServicios() {
               <div
                 key={s.id}
                 style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0',
+                  display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0',
                   borderTop: '1px solid var(--border)', gap: 12,
                 }}
               >

@@ -4,6 +4,7 @@ import { collection, doc, onSnapshot } from 'firebase/firestore'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { db } from '../../firebase/config'
 import Icon from '../../components/Icon.jsx'
+import useIsMobile from '../../hooks/useIsMobile.js'
 
 // Shell del panel del comerciante: sidebar con navegación real + los datos
 // del negocio y sus servicios, compartidos entre las sub-páginas via
@@ -23,6 +24,8 @@ export default function OwnerLayout() {
   const { currentUser, logout } = useAuth()
   const navigate = useNavigate()
   const uid = currentUser?.uid
+  const isMobile = useIsMobile()
+  const [drawerAbierto, setDrawerAbierto] = useState(false)
 
   const [negocio, setNegocio] = useState(null)
   const [servicios, setServicios] = useState([])
@@ -77,75 +80,124 @@ export default function OwnerLayout() {
     )
   }
 
+  const sidebar = (
+    <aside
+      style={{
+        width: isMobile ? 260 : 232, background: 'var(--ink)', color: 'var(--ink-text)', flexShrink: 0,
+        display: 'flex', flexDirection: 'column', padding: '22px 16px',
+        ...(isMobile && {
+          position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 51, boxShadow: 'var(--shadow-md)', overflowY: 'auto',
+        }),
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 16.5, fontWeight: 800, padding: '0 6px' }}>
+        <span
+          style={{
+            width: 30, height: 30, borderRadius: 9, background: 'var(--accent)', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0,
+          }}
+        >
+          MB
+        </span>
+        MiniBarrio
+      </div>
+
+      <div style={{ fontSize: 10.5, letterSpacing: 0.6, textTransform: 'uppercase', color: 'oklch(70% 0.02 165)', margin: '26px 6px 10px' }}>
+        Panel del comerciante
+      </div>
+
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {NAV_ITEMS.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.end}
+            onClick={() => setDrawerAbierto(false)}
+            style={({ isActive }) => ({
+              display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px', borderRadius: 9,
+              fontSize: 13.5, fontWeight: 700, textDecoration: 'none',
+              background: isActive ? 'var(--ink-2)' : 'transparent',
+              color: isActive ? '#fff' : 'oklch(70% 0.02 165)',
+            })}
+          >
+            <Icon name={item.icon} size={16} />
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+
+      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ background: 'var(--ink-2)', borderRadius: 12, padding: 14 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700 }}>Perfil al {perfilCompletado}%</div>
+          <div style={{ height: 6, background: 'oklch(35% 0.03 165)', borderRadius: 999, marginTop: 8, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${perfilCompletado}%`, background: 'var(--accent)', borderRadius: 999 }} />
+          </div>
+          {perfilCompletado < 100 && (
+            <div style={{ fontSize: 11, color: 'oklch(70% 0.02 165)', marginTop: 8, lineHeight: 1.4 }}>
+              Completa tu perfil (fotos, servicios y datos de contacto) para aparecer mejor posicionado.
+            </div>
+          )}
+        </div>
+        <button
+          onClick={handleLogout}
+          style={{
+            background: 'transparent', border: '1px solid oklch(38% 0.03 165)', color: 'oklch(85% 0.01 165)',
+            display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', fontSize: 13, fontWeight: 700,
+            borderRadius: 'var(--radius-sm)', padding: '10px 16px',
+          }}
+        >
+          <Icon name="logout" size={15} /> Cerrar sesión
+        </button>
+      </div>
+    </aside>
+  )
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <aside
-        style={{
-          width: 232, background: 'var(--ink)', color: 'var(--ink-text)', flexShrink: 0,
-          display: 'flex', flexDirection: 'column', padding: '22px 16px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 16.5, fontWeight: 800, padding: '0 6px' }}>
-          <span
+      {isMobile ? (
+        <>
+          <header
             style={{
-              width: 30, height: 30, borderRadius: 9, background: 'var(--accent)', color: '#fff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0,
+              position: 'fixed', top: 0, left: 0, right: 0, height: 56, zIndex: 40,
+              background: 'var(--ink)', color: '#fff', display: 'flex', alignItems: 'center',
+              justifyContent: 'space-between', padding: '0 16px',
             }}
           >
-            MB
-          </span>
-          MiniBarrio
-        </div>
-
-        <div style={{ fontSize: 10.5, letterSpacing: 0.6, textTransform: 'uppercase', color: 'oklch(70% 0.02 165)', margin: '26px 6px 10px' }}>
-          Panel del comerciante
-        </div>
-
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              style={({ isActive }) => ({
-                display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px', borderRadius: 9,
-                fontSize: 13.5, fontWeight: 700, textDecoration: 'none',
-                background: isActive ? 'var(--ink-2)' : 'transparent',
-                color: isActive ? '#fff' : 'oklch(70% 0.02 165)',
-              })}
-            >
-              <Icon name={item.icon} size={16} />
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ background: 'var(--ink-2)', borderRadius: 12, padding: 14 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 700 }}>Perfil al {perfilCompletado}%</div>
-            <div style={{ height: 6, background: 'oklch(35% 0.03 165)', borderRadius: 999, marginTop: 8, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${perfilCompletado}%`, background: 'var(--accent)', borderRadius: 999 }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 15, fontWeight: 800 }}>
+              <span
+                style={{
+                  width: 26, height: 26, borderRadius: 8, background: 'var(--accent)', color: '#fff',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11.5, flexShrink: 0,
+                }}
+              >
+                MB
+              </span>
+              MiniBarrio
             </div>
-            {perfilCompletado < 100 && (
-              <div style={{ fontSize: 11, color: 'oklch(70% 0.02 165)', marginTop: 8, lineHeight: 1.4 }}>
-                Completa tu perfil (fotos, servicios y datos de contacto) para aparecer mejor posicionado.
-              </div>
-            )}
-          </div>
-          <button
-            onClick={handleLogout}
-            style={{
-              background: 'transparent', border: '1px solid oklch(38% 0.03 165)', color: 'oklch(85% 0.01 165)',
-              display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', fontSize: 13, fontWeight: 700,
-              borderRadius: 'var(--radius-sm)', padding: '10px 16px',
-            }}
-          >
-            <Icon name="logout" size={15} /> Cerrar sesión
-          </button>
-        </div>
-      </aside>
+            <button
+              type="button"
+              onClick={() => setDrawerAbierto(true)}
+              aria-label="Abrir menú"
+              style={{ background: 'none', border: 'none', color: '#fff', display: 'flex', padding: 4 }}
+            >
+              <Icon name="menu" size={22} />
+            </button>
+          </header>
 
-      <main style={{ flex: 1, background: 'var(--bg)', padding: '28px 36px' }}>
+          {drawerAbierto && (
+            <div
+              role="presentation"
+              onClick={() => setDrawerAbierto(false)}
+              style={{ position: 'fixed', inset: 0, background: 'oklch(20% 0.01 0 / 0.45)', zIndex: 50 }}
+            />
+          )}
+          {drawerAbierto && sidebar}
+        </>
+      ) : (
+        sidebar
+      )}
+
+      <main style={{ flex: 1, background: 'var(--bg)', padding: isMobile ? '72px 16px 24px' : '28px 36px', minWidth: 0 }}>
         <Outlet context={{ negocio, servicios, uid }} />
       </main>
     </div>

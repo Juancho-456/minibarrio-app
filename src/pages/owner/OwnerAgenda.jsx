@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom'
 import { collection, doc, getDoc, onSnapshot, query, updateDoc, where } from 'firebase/firestore'
 import { db } from '../../firebase/config'
 import Icon from '../../components/Icon.jsx'
+import useIsMobile from '../../hooks/useIsMobile.js'
 
 // Agenda del negocio (RF-07/RF-08): calendario del mes con las citas
 // agendadas por los clientes, y cambio de estado de cada cita (pendiente /
@@ -41,6 +42,7 @@ function isSameDay(a, b) {
 
 export default function OwnerAgenda() {
   const { servicios, uid } = useOutletContext()
+  const isMobile = useIsMobile()
 
   const [mesVisto, setMesVisto] = useState(() => {
     const d = new Date()
@@ -145,7 +147,7 @@ export default function OwnerAgenda() {
         Revisa las citas agendadas por tus clientes y actualiza su estado.
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: diaSeleccionado ? '1.3fr 1fr' : '1fr', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: !isMobile && diaSeleccionado ? '1.3fr 1fr' : '1fr', gap: isMobile ? 14 : 20, alignItems: 'start' }}>
         <div className="card" style={{ padding: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <button type="button" onClick={() => cambiarMes(-1)} className="btn btn-outline" style={{ padding: '7px 9px' }}>
@@ -157,11 +159,11 @@ export default function OwnerAgenda() {
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: isMobile ? 3 : 6 }}>
             {DIAS_SEMANA.map((d, i) => (
               <div
                 key={d}
-                style={{ fontSize: 11, fontWeight: 700, color: i === 0 || i === 6 ? 'oklch(68% 0.05 40)' : 'var(--text-faint)', textAlign: 'center', paddingBottom: 4 }}
+                style={{ fontSize: isMobile ? 9.5 : 11, fontWeight: 700, color: i === 0 || i === 6 ? 'oklch(68% 0.05 40)' : 'var(--text-faint)', textAlign: 'center', paddingBottom: 4 }}
               >
                 {d}
               </div>
@@ -178,7 +180,8 @@ export default function OwnerAgenda() {
                 <div
                   key={dia}
                   style={{
-                    minHeight: 74, borderRadius: 10, padding: '7px 6px', display: 'flex', flexDirection: 'column', gap: 6,
+                    minHeight: isMobile ? 44 : 74, borderRadius: 10, padding: isMobile ? '5px 3px' : '7px 6px',
+                    display: 'flex', flexDirection: 'column', gap: isMobile ? 3 : 6,
                     background: seleccionado
                       ? 'var(--accent-soft)'
                       : esHoy
@@ -189,7 +192,7 @@ export default function OwnerAgenda() {
                     border: `1px solid ${seleccionado ? 'var(--accent)' : 'var(--border)'}`,
                   }}
                 >
-                  <span style={{ fontSize: 12, fontWeight: esHoy ? 800 : 600, color: esHoy ? 'var(--accent-hover)' : 'var(--text-muted)' }}>
+                  <span style={{ fontSize: isMobile ? 10.5 : 12, fontWeight: esHoy ? 800 : 600, color: esHoy ? 'var(--accent-hover)' : 'var(--text-muted)' }}>
                     {dia}
                   </span>
                   {citasDia.length > 0 && (
@@ -197,11 +200,11 @@ export default function OwnerAgenda() {
                       type="button"
                       onClick={() => setDiaSeleccionado(fechaCelda)}
                       style={{
-                        fontSize: 10, fontWeight: 700, padding: '4px 5px', borderRadius: 7, border: 'none',
+                        fontSize: isMobile ? 8.5 : 10, fontWeight: 700, padding: isMobile ? '3px 3px' : '4px 5px', borderRadius: 7, border: 'none',
                         background: 'var(--accent)', color: '#fff', cursor: 'pointer', lineHeight: 1.2,
                       }}
                     >
-                      Ver reservas{citasDia.length > 1 ? ` (${citasDia.length})` : ''}
+                      {isMobile ? (citasDia.length > 1 ? `Ver (${citasDia.length})` : 'Ver') : `Ver reservas${citasDia.length > 1 ? ` (${citasDia.length})` : ''}`}
                     </button>
                   )}
                 </div>

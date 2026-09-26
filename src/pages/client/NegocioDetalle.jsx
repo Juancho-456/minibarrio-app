@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext.jsx'
 import { db } from '../../firebase/config'
 import Icon from '../../components/Icon.jsx'
 import CalificarModal from '../../components/CalificarModal.jsx'
+import useIsMobile from '../../hooks/useIsMobile.js'
 
 // Perfil público del negocio + reserva de citas (RF-05, RF-06, RF-07, RF-08,
 // RF-10). La reserva exige al menos un día de anticipación (no el mismo
@@ -103,6 +104,7 @@ export default function NegocioDetalle() {
   const { id } = useParams()
   const { currentUser, role } = useAuth()
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
 
   const [negocio, setNegocio] = useState(null)
   const [servicios, setServicios] = useState([])
@@ -292,7 +294,7 @@ export default function NegocioDetalle() {
 
   return (
     <div>
-      <div style={{ background: 'var(--ink)', padding: '24px 32px 28px' }}>
+      <div style={{ background: 'var(--ink)', padding: isMobile ? '18px 16px 20px' : '24px 32px 28px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <Link to="/" style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink-text)' }}>← Volver a la vitrina</Link>
 
@@ -328,7 +330,7 @@ export default function NegocioDetalle() {
                     key={f}
                     src={f}
                     alt=""
-                    style={{ height: 240, width: 'auto', maxWidth: '100%', borderRadius: 'var(--radius-md)', objectFit: 'contain', flexShrink: 0 }}
+                    style={{ height: isMobile ? 160 : 240, width: 'auto', maxWidth: '100%', borderRadius: 'var(--radius-md)', objectFit: 'contain', flexShrink: 0 }}
                     onError={(e) => { e.currentTarget.style.opacity = 0.15 }}
                   />
                 ))}
@@ -379,7 +381,7 @@ export default function NegocioDetalle() {
         </div>
       )}
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 32px 60px' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: isMobile ? '18px 16px 40px' : '24px 32px 60px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -435,7 +437,7 @@ export default function NegocioDetalle() {
         ))}
       </nav>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 24, marginTop: 24, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.5fr 1fr', gap: 24, marginTop: 24, alignItems: 'start' }}>
         <div>
           {tab === 'general' && (
             <>
@@ -556,7 +558,7 @@ export default function NegocioDetalle() {
           )}
         </div>
 
-        <div style={{ position: 'sticky', top: 20 }}>
+        <div style={isMobile ? {} : { position: 'sticky', top: 20 }}>
         <div className="card" style={{ padding: 20 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' }}>Servicio seleccionado</div>
           {servicioSeleccionado ? (
@@ -604,7 +606,7 @@ export default function NegocioDetalle() {
               <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 8 }}>Este negocio no atiende ese día.</p>
             ) : (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 8, marginTop: 8 }}>
                   {(turnosExpandidos ? slotsDelDia : slotsDelDia.slice(0, 6)).map((s) => {
                     const ocupado = ocupados.has(s)
                     const seleccionado = hora === s

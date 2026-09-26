@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { collection, doc, getDoc, onSnapshot, query, where } from 'firebase/firestore'
 import { db } from '../../firebase/config'
+import useIsMobile from '../../hooks/useIsMobile.js'
 
 // Clientes que han agendado una cita o dejado una reseña (RF-07, RF-10).
 // Requiere que firestore.rules permita al propietario leer el perfil básico
@@ -11,6 +12,7 @@ const FECHA = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'short',
 
 export default function OwnerClientes() {
   const { uid } = useOutletContext()
+  const isMobile = useIsMobile()
 
   const [citas, setCitas] = useState([])
   const [resenas, setResenas] = useState([])
@@ -79,6 +81,20 @@ export default function OwnerClientes() {
           <p style={{ color: 'var(--text-muted)', fontSize: 13.5 }}>
             Aún no tienes clientes registrados. Aparecerán aquí cuando reserven una cita o dejen una reseña.
           </p>
+        ) : isMobile ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {lista.map((c) => (
+              <div key={c.clienteId} className="card" style={{ padding: 14 }}>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>{c.nombre || 'Cargando…'}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 8, fontSize: 12.5 }}>
+                  <Campo label="Contacto" value={c.telefono || c.correo || '—'} />
+                  <Campo label="Citas" value={c.citas} />
+                  <Campo label="Última cita" value={c.ultimaCita ? FECHA.format(c.ultimaCita) : '—'} />
+                  <Campo label="Reseña" value={c.tieneResena ? 'Sí' : '—'} />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
@@ -106,6 +122,15 @@ export default function OwnerClientes() {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+function Campo({ label, value }) {
+  return (
+    <div>
+      <div style={{ color: 'var(--text-faint)', fontSize: 10.5, textTransform: 'uppercase', fontWeight: 700 }}>{label}</div>
+      <div style={{ color: 'var(--text-muted)', marginTop: 2 }}>{value}</div>
     </div>
   )
 }

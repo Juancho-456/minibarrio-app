@@ -53,7 +53,7 @@ export default function ClientCitas() {
   function Fila({ c, mostrarCancelar }) {
     const estilo = ESTADO_STYLES[c.estado] || ESTADO_STYLES.pendiente
     return (
-      <div className="card" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="card" style={{ padding: 14, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
         <div style={{ width: 38, height: 38, borderRadius: 10, background: 'var(--surface-2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)' }}>
           <Icon name="calendar" size={16} />
         </div>

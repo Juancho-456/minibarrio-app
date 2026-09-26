@@ -6,6 +6,7 @@ import {
 import { useAuth } from '../../context/AuthContext.jsx'
 import { db } from '../../firebase/config'
 import Icon from '../../components/Icon.jsx'
+import useIsMobile from '../../hooks/useIsMobile.js'
 
 // Shell del panel del cliente: sidebar de navegación + los datos del perfil,
 // citas, favoritos y reseñas del cliente, compartidos entre las sub-páginas
@@ -31,6 +32,8 @@ export default function ClientLayout() {
   const { currentUser, logout } = useAuth()
   const navigate = useNavigate()
   const uid = currentUser?.uid
+  const isMobile = useIsMobile()
+  const [drawerAbierto, setDrawerAbierto] = useState(false)
 
   const [perfil, setPerfil] = useState(null)
   const [citas, setCitas] = useState([])
@@ -136,12 +139,77 @@ export default function ClientLayout() {
     ? new Intl.DateTimeFormat('es-CO', { month: 'long', year: 'numeric' }).format(perfil.creadoEn.toDate())
     : null
 
+  const sidebar = (
+    <aside
+      style={{
+        width: isMobile ? 260 : 232, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16,
+        ...(isMobile && {
+          position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 51, background: 'var(--bg)',
+          padding: 16, overflowY: 'auto', boxShadow: 'var(--shadow-md)',
+        }),
+      }}
+    >
+      <div className="card" style={{ padding: 20, textAlign: 'center' }}>
+        <span
+          style={{
+            width: 56, height: 56, borderRadius: '50%', background: 'var(--accent)', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, fontWeight: 700, margin: '0 auto',
+          }}
+        >
+          {inicialesDe(perfil?.nombre || currentUser?.displayName)}
+        </span>
+        <div style={{ fontWeight: 800, fontSize: 15, marginTop: 10 }}>{perfil?.nombre || currentUser?.displayName}</div>
+        <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 5, marginBottom: 18, lineHeight: 1.4 }}>
+          Cliente{desde ? ` · desde ${desde}` : ''}
+        </div>
+        <Link
+          to="/perfil/datos"
+          onClick={() => setDrawerAbierto(false)}
+          className="btn btn-outline"
+          style={{ width: '100%', padding: '8px 0', fontSize: 12.5 }}
+        >
+          Editar perfil
+        </Link>
+      </div>
+
+      <nav className="card" style={{ padding: 10, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {NAV_ITEMS.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.end}
+            onClick={() => setDrawerAbierto(false)}
+            style={({ isActive }) => ({
+              display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px', borderRadius: 9,
+              fontSize: 13.5, fontWeight: 700, textDecoration: 'none',
+              background: isActive ? 'var(--accent-soft)' : 'transparent',
+              color: isActive ? 'var(--accent-hover)' : 'var(--text-muted)',
+            })}
+          >
+            <Icon name={item.icon} size={16} />
+            {item.label}
+          </NavLink>
+        ))}
+        <div style={{ height: 1, background: 'var(--border)', margin: '8px 4px' }} />
+        <button
+          onClick={handleLogout}
+          style={{
+            background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px',
+            borderRadius: 9, fontSize: 13.5, fontWeight: 700, color: 'var(--danger)', cursor: 'pointer', textAlign: 'left',
+          }}
+        >
+          <Icon name="logout" size={16} /> Cerrar sesión
+        </button>
+      </nav>
+    </aside>
+  )
+
   return (
     <div>
       <header
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '14px 32px', background: 'var(--surface)', borderBottom: '1px solid var(--border)', flexWrap: 'wrap', gap: 12,
+          padding: isMobile ? '14px 16px' : '14px 32px', background: 'var(--surface)', borderBottom: '1px solid var(--border)', flexWrap: 'wrap', gap: 12,
         }}
       >
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 18, fontWeight: 800 }}>
@@ -157,71 +225,55 @@ export default function ClientLayout() {
             <span style={{ color: 'var(--text)' }}>Mini</span><span style={{ color: 'var(--accent)' }}>Barrio</span>
           </span>
         </Link>
-        <nav style={{ display: 'flex', gap: 20, fontSize: 13.5, fontWeight: 700 }}>
-          <Link to="/" style={{ color: 'var(--text-muted)' }}>Inicio</Link>
-          <Link to="/#resultados" style={{ color: 'var(--text-muted)' }}>Recomendados para ti</Link>
-        </nav>
-        <span
-          style={{
-            width: 34, height: 34, borderRadius: '50%', background: 'var(--accent)', color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 700,
-          }}
-        >
-          {inicialesDe(perfil?.nombre || currentUser?.displayName)}
-        </span>
+        {!isMobile && (
+          <nav style={{ display: 'flex', gap: 20, fontSize: 13.5, fontWeight: 700 }}>
+            <Link to="/" style={{ color: 'var(--text-muted)' }}>Inicio</Link>
+            <Link to="/#resultados" style={{ color: 'var(--text-muted)' }}>Recomendados para ti</Link>
+          </nav>
+        )}
+        {isMobile ? (
+          <button
+            type="button"
+            onClick={() => setDrawerAbierto(true)}
+            aria-label="Abrir menú"
+            style={{ background: 'none', border: 'none', color: 'var(--text)', display: 'flex', padding: 4 }}
+          >
+            <Icon name="menu" size={22} />
+          </button>
+        ) : (
+          <span
+            style={{
+              width: 34, height: 34, borderRadius: '50%', background: 'var(--accent)', color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 700,
+            }}
+          >
+            {inicialesDe(perfil?.nombre || currentUser?.displayName)}
+          </span>
+        )}
       </header>
 
-      <div style={{ display: 'flex', maxWidth: 1160, margin: '0 auto', gap: 24, padding: '28px 32px', alignItems: 'flex-start' }}>
-        <aside style={{ width: 232, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div className="card" style={{ padding: 20, textAlign: 'center' }}>
-            <span
-              style={{
-                width: 56, height: 56, borderRadius: '50%', background: 'var(--accent)', color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19, fontWeight: 700, margin: '0 auto',
-              }}
-            >
-              {inicialesDe(perfil?.nombre || currentUser?.displayName)}
-            </span>
-            <div style={{ fontWeight: 800, fontSize: 15, marginTop: 10 }}>{perfil?.nombre || currentUser?.displayName}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 5, marginBottom: 18, lineHeight: 1.4 }}>
-              Cliente{desde ? ` · desde ${desde}` : ''}
-            </div>
-            <Link to="/perfil/datos" className="btn btn-outline" style={{ width: '100%', padding: '8px 0', fontSize: 12.5 }}>
-              Editar perfil
-            </Link>
-          </div>
+      <div
+        style={{
+          display: 'flex', flexDirection: isMobile ? 'column' : 'row', maxWidth: 1160, margin: '0 auto',
+          gap: isMobile ? 0 : 24, padding: isMobile ? 16 : '28px 32px', alignItems: 'flex-start',
+        }}
+      >
+        {isMobile ? (
+          <>
+            {drawerAbierto && (
+              <div
+                role="presentation"
+                onClick={() => setDrawerAbierto(false)}
+                style={{ position: 'fixed', inset: 0, background: 'oklch(20% 0.01 0 / 0.45)', zIndex: 50 }}
+              />
+            )}
+            {drawerAbierto && sidebar}
+          </>
+        ) : (
+          sidebar
+        )}
 
-          <nav className="card" style={{ padding: 10, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {NAV_ITEMS.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                style={({ isActive }) => ({
-                  display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px', borderRadius: 9,
-                  fontSize: 13.5, fontWeight: 700, textDecoration: 'none',
-                  background: isActive ? 'var(--accent-soft)' : 'transparent',
-                  color: isActive ? 'var(--accent-hover)' : 'var(--text-muted)',
-                })}
-              >
-                <Icon name={item.icon} size={16} />
-                {item.label}
-              </NavLink>
-            ))}
-            <div style={{ height: 1, background: 'var(--border)', margin: '8px 4px' }} />
-            <button
-              onClick={handleLogout}
-              style={{
-                background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px',
-                borderRadius: 9, fontSize: 13.5, fontWeight: 700, color: 'var(--danger)', cursor: 'pointer', textAlign: 'left',
-              }}
-            >
-              <Icon name="logout" size={16} /> Cerrar sesión
-            </button>
-          </nav>
-        </aside>
-
-        <main style={{ flex: 1, minWidth: 0 }}>
+        <main style={{ flex: 1, minWidth: 0, width: isMobile ? '100%' : 'auto' }}>
           <Outlet context={context} />
         </main>
       </div>
