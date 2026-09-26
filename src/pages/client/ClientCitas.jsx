@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import Icon from '../../components/Icon.jsx'
+import useIsMobile from '../../hooks/useIsMobile.js'
 
 const FECHA_LARGA = new Intl.DateTimeFormat('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })
 const HORA = new Intl.DateTimeFormat('es-CO', { hour: 'numeric', minute: '2-digit', hour12: true })
@@ -19,6 +20,7 @@ function capitalize(s) {
 export default function ClientCitas() {
   const { citas, negociosPorId, serviciosPorId, cancelarCita } = useOutletContext()
   const [cancelandoId, setCancelandoId] = useState(null)
+  const isMobile = useIsMobile()
 
   const ahora = useMemo(() => new Date(), [])
 
@@ -52,38 +54,70 @@ export default function ClientCitas() {
 
   function Fila({ c, mostrarCancelar }) {
     const estilo = ESTADO_STYLES[c.estado] || ESTADO_STYLES.pendiente
-    return (
-      <div className="card" style={{ padding: 14, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
-        <div style={{ width: 38, height: 38, borderRadius: 10, background: 'var(--surface-2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)' }}>
-          <Icon name="calendar" size={16} />
+
+    const boton = mostrarCancelar ? (
+      <button
+        type="button"
+        onClick={() => handleCancelar(c.id)}
+        disabled={cancelandoId === c.id}
+        style={{
+          padding: '7px 12px', fontSize: 12, fontWeight: 700, borderRadius: 'var(--radius-sm)',
+          border: '1px solid var(--danger)', background: 'var(--surface)', color: 'var(--danger)', cursor: 'pointer', flexShrink: 0,
+        }}
+      >
+        {cancelandoId === c.id ? 'Cancelando…' : 'Cancelar'}
+      </button>
+    ) : (
+      <Link to={`/negocio/${c.negocioId}`} className="btn btn-outline" style={{ padding: '7px 12px', fontSize: 12, flexShrink: 0 }}>
+        Reservar de nuevo
+      </Link>
+    )
+
+    const pill = (
+      <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: estilo.bg, color: estilo.text, whiteSpace: 'nowrap', flexShrink: 0 }}>
+        {estilo.label}
+      </span>
+    )
+
+    const icono = (
+      <div style={{ width: 38, height: 38, borderRadius: 10, background: 'var(--surface-2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)' }}>
+        <Icon name="calendar" size={16} />
+      </div>
+    )
+
+    const texto = (
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontWeight: 700, fontSize: 14 }}>{negociosPorId[c.negocioId]?.nombre || 'Negocio'}</div>
+        <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
+          {serviciosPorId[`${c.negocioId}:${c.servicioId}`]?.nombre || 'Servicio'} ·{' '}
+          {capitalize(FECHA_LARGA.format(c.fecha))}, {HORA.format(c.fecha)}
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 14 }}>{negociosPorId[c.negocioId]?.nombre || 'Negocio'}</div>
-          <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
-            {serviciosPorId[`${c.negocioId}:${c.servicioId}`]?.nombre || 'Servicio'} ·{' '}
-            {capitalize(FECHA_LARGA.format(c.fecha))}, {HORA.format(c.fecha)}
+      </div>
+    )
+
+    if (isMobile) {
+      return (
+        <div className="card" style={{ padding: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            {icono}
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+              {texto}
+              {pill}
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+            {boton}
           </div>
         </div>
-        <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: estilo.bg, color: estilo.text, whiteSpace: 'nowrap' }}>
-          {estilo.label}
-        </span>
-        {mostrarCancelar ? (
-          <button
-            type="button"
-            onClick={() => handleCancelar(c.id)}
-            disabled={cancelandoId === c.id}
-            style={{
-              padding: '7px 12px', fontSize: 12, fontWeight: 700, borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--danger)', background: 'var(--surface)', color: 'var(--danger)', cursor: 'pointer', flexShrink: 0,
-            }}
-          >
-            {cancelandoId === c.id ? 'Cancelando…' : 'Cancelar'}
-          </button>
-        ) : (
-          <Link to={`/negocio/${c.negocioId}`} className="btn btn-outline" style={{ padding: '7px 12px', fontSize: 12, flexShrink: 0 }}>
-            Reservar de nuevo
-          </Link>
-        )}
+      )
+    }
+
+    return (
+      <div className="card" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
+        {icono}
+        <div style={{ flex: 1, minWidth: 0 }}>{texto}</div>
+        {pill}
+        {boton}
       </div>
     )
   }

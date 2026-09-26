@@ -88,30 +88,37 @@ export default function ClientResumen() {
         <div
           className="card"
           style={{
-            marginTop: 16, padding: 16, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14,
+            marginTop: 16, padding: 16, display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+            alignItems: isMobile ? 'stretch' : 'center', gap: 14,
             background: 'var(--accent-soft)', borderColor: 'var(--accent)',
           }}
         >
-          <div style={{ width: 44, height: 44, borderRadius: 10, background: 'var(--surface)', flexShrink: 0 }} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <span
-              style={{
-                fontSize: 10.5, fontWeight: 700, padding: '3px 9px', borderRadius: 999,
-                background: 'var(--accent)', color: '#fff',
-              }}
-            >
-              Próxima cita
-            </span>
-            <div style={{ fontWeight: 800, fontSize: 14.5, marginTop: 6 }}>
-              {negociosPorId[proximaCita.negocioId]?.nombre || 'Negocio'}
-            </div>
-            <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
-              {serviciosPorId[`${proximaCita.negocioId}:${proximaCita.servicioId}`]?.nombre || 'Servicio'} ·{' '}
-              {FECHA_CORTA.format(proximaCita.fecha)}, {HORA.format(proximaCita.fecha)}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 10, background: 'var(--surface)', flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <span
+                style={{
+                  fontSize: 10.5, fontWeight: 700, padding: '3px 9px', borderRadius: 999,
+                  background: 'var(--accent)', color: '#fff',
+                }}
+              >
+                Próxima cita
+              </span>
+              <div style={{ fontWeight: 800, fontSize: 14.5, marginTop: 6 }}>
+                {negociosPorId[proximaCita.negocioId]?.nombre || 'Negocio'}
+              </div>
+              <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                {serviciosPorId[`${proximaCita.negocioId}:${proximaCita.servicioId}`]?.nombre || 'Servicio'} ·{' '}
+                {FECHA_CORTA.format(proximaCita.fecha)}, {HORA.format(proximaCita.fecha)}
+              </div>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-            <Link to={`/negocio/${proximaCita.negocioId}`} className="btn btn-outline" style={{ padding: '8px 14px', fontSize: 12.5 }}>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginTop: isMobile ? 4 : 0 }}>
+            <Link
+              to={`/negocio/${proximaCita.negocioId}`}
+              className="btn btn-outline"
+              style={{ padding: '8px 14px', fontSize: 12.5, flex: isMobile ? 1 : 'initial', textAlign: 'center' }}
+            >
               Reprogramar
             </Link>
             <button
@@ -121,6 +128,7 @@ export default function ClientResumen() {
               style={{
                 padding: '8px 14px', fontSize: 12.5, fontWeight: 700, borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--danger)', background: 'var(--surface)', color: 'var(--danger)', cursor: 'pointer',
+                flex: isMobile ? 1 : 'initial',
               }}
             >
               {cancelandoId === proximaCita.id ? 'Cancelando…' : 'Cancelar'}
@@ -222,17 +230,23 @@ export default function ClientResumen() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {historial.map((c) => (
-              <div key={c.id} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--surface-2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)' }}>
-                  <Icon name="calendar" size={15} />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: 13.5 }}>{negociosPorId[c.negocioId]?.nombre || 'Negocio'}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-faint)' }}>
-                    {serviciosPorId[`${c.negocioId}:${c.servicioId}`]?.nombre || 'Servicio'} · {FECHA_LARGA.format(c.fecha)}
+              <div key={c.id} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? 8 : 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--surface-2)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)' }}>
+                    <Icon name="calendar" size={15} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13.5 }}>{negociosPorId[c.negocioId]?.nombre || 'Negocio'}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-faint)' }}>
+                      {serviciosPorId[`${c.negocioId}:${c.servicioId}`]?.nombre || 'Servicio'} · {FECHA_LARGA.format(c.fecha)}
+                    </div>
                   </div>
                 </div>
-                <Link to={`/negocio/${c.negocioId}`} className="btn btn-outline" style={{ padding: '7px 12px', fontSize: 12, flexShrink: 0 }}>
+                <Link
+                  to={`/negocio/${c.negocioId}`}
+                  className="btn btn-outline"
+                  style={{ padding: '7px 12px', fontSize: 12, flexShrink: 0, textAlign: 'center', alignSelf: isMobile ? 'flex-end' : 'center' }}
+                >
                   Reservar de nuevo
                 </Link>
               </div>
