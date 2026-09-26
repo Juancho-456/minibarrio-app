@@ -86,11 +86,13 @@ export default function OwnerClientes() {
             {lista.map((c) => (
               <div key={c.clienteId} className="card" style={{ padding: 14 }}>
                 <div style={{ fontWeight: 700, fontSize: 14 }}>{c.nombre || 'Cargando…'}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 8, fontSize: 12.5 }}>
+                <div style={{ marginTop: 8, fontSize: 12.5, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <Campo label="Contacto" value={c.telefono || c.correo || '—'} />
-                  <Campo label="Citas" value={c.citas} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                    <Campo label="Citas" value={c.citas} />
+                    <Campo label="Reseña" value={c.tieneResena ? 'Sí' : '—'} />
+                  </div>
                   <Campo label="Última cita" value={c.ultimaCita ? FECHA.format(c.ultimaCita) : '—'} />
-                  <Campo label="Reseña" value={c.tieneResena ? 'Sí' : '—'} />
                 </div>
               </div>
             ))}
@@ -130,7 +132,7 @@ function Campo({ label, value }) {
   return (
     <div>
       <div style={{ color: 'var(--text-faint)', fontSize: 10.5, textTransform: 'uppercase', fontWeight: 700 }}>{label}</div>
-      <div style={{ color: 'var(--text-muted)', marginTop: 2 }}>{value}</div>
+      <div style={{ color: 'var(--text-muted)', marginTop: 2, overflowWrap: 'anywhere' }}>{value}</div>
     </div>
   )
 }
