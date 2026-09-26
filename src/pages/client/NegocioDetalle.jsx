@@ -447,7 +447,7 @@ export default function NegocioDetalle() {
               {servicios.length === 0 ? (
                 <p style={{ color: 'var(--text-muted)', fontSize: 13.5 }}>Este negocio todavía no ha publicado servicios.</p>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 12 }}>
                   {servicios.map((s) => {
                     const seleccionado = s.id === servicioId
                     return (
@@ -558,6 +558,7 @@ export default function NegocioDetalle() {
           )}
         </div>
 
+        {(!isMobile || tab === 'general') && (
         <div style={isMobile ? {} : { position: 'sticky', top: 20 }}>
         <div className="card" style={{ padding: 20 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase' }}>Servicio seleccionado</div>
@@ -683,6 +684,7 @@ export default function NegocioDetalle() {
           </p>
         </div>
         </div>
+        )}
       </div>
       </div>
 
