@@ -140,7 +140,8 @@ export function AuthProvider({ children }) {
       horarios: {
         lunesAViernes: { apertura: '09:00', cierre: '20:00' },
         sabado: { apertura: '08:00', cierre: '21:00' },
-        domingoFestivos: { apertura: '09:00', cierre: '16:00' },
+        domingo: { activo: false, apertura: '09:00', cierre: '16:00' },
+        festivos: { activo: false, apertura: '09:00', cierre: '16:00' },
       },
       fotos: [],
       verificado: false,

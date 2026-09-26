@@ -34,11 +34,21 @@ function inicialesDe(nombre) {
   return partes.slice(0, 2).map((p) => p[0]?.toUpperCase()).join('')
 }
 
+// Domingo y festivos se guardan por separado, cada uno con su propio
+// interruptor de "hay servicio" (ver EditarNegocioModal.jsx). Los negocios
+// creados antes de este cambio solo tienen "domingoFestivos": se usa como
+// respaldo.
+function bloqueDomingo(horarios) {
+  const bloque = horarios.domingo || horarios.domingoFestivos
+  if (!bloque || bloque.activo === false) return null
+  return bloque
+}
+
 function estadoApertura(horarios) {
   if (!horarios) return null
   const ahora = new Date()
   const dia = ahora.getDay() // 0 = domingo … 6 = sábado
-  const bloque = dia === 0 ? horarios.domingoFestivos : dia === 6 ? horarios.sabado : horarios.lunesAViernes
+  const bloque = dia === 0 ? bloqueDomingo(horarios) : dia === 6 ? horarios.sabado : horarios.lunesAViernes
   if (!bloque?.apertura || !bloque?.cierre) return null
 
   const [hA, mA] = bloque.apertura.split(':').map(Number)

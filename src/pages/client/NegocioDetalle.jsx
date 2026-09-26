@@ -22,8 +22,20 @@ const FECHA_CORTA = new Intl.DateTimeFormat('es-CO', { weekday: 'short', day: 'n
 const DIAS_HORARIO = [
   { key: 'lunesAViernes', label: 'Lunes a viernes' },
   { key: 'sabado', label: 'Sábado' },
-  { key: 'domingoFestivos', label: 'Domingo y festivos' },
+  { key: 'domingo', label: 'Domingo' },
+  { key: 'festivos', label: 'Festivos' },
 ]
+
+// Domingo y festivos ahora se guardan por separado, cada uno con su propio
+// interruptor de "hay servicio" (ver EditarNegocioModal.jsx). Los negocios
+// creados antes de este cambio solo tienen "domingoFestivos": se usa como
+// respaldo para ambos.
+function resolverBloque(horarios, key) {
+  if (key !== 'domingo' && key !== 'festivos') return horarios?.[key]
+  const bloque = horarios?.[key] || horarios?.domingoFestivos
+  if (!bloque || bloque.activo === false) return null
+  return bloque
+}
 
 function toDateInputValue(date) {
   const y = date.getFullYear()
@@ -34,7 +46,7 @@ function toDateInputValue(date) {
 
 function bloqueDelDia(horarios, fecha) {
   const dia = fecha.getDay() // 0 = domingo … 6 = sábado
-  if (dia === 0) return horarios?.domingoFestivos
+  if (dia === 0) return resolverBloque(horarios, 'domingo')
   if (dia === 6) return horarios?.sabado
   return horarios?.lunesAViernes
 }
@@ -519,10 +531,10 @@ export default function NegocioDetalle() {
           {tab === 'horarios' && (
             <div>
               <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 14 }}>Horario de atención</div>
-              {DIAS_HORARIO.some((d) => negocio.horarios?.[d.key]?.apertura) ? (
+              {DIAS_HORARIO.some((d) => resolverBloque(negocio.horarios, d.key)?.apertura) ? (
                 <div className="card" style={{ padding: 18, maxWidth: 360 }}>
                   {DIAS_HORARIO.map((d) => {
-                    const bloque = negocio.horarios?.[d.key]
+                    const bloque = resolverBloque(negocio.horarios, d.key)
                     if (!bloque?.apertura) return null
                     return (
                       <div key={d.key} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '5px 0', color: 'var(--text-muted)' }}>

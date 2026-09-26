@@ -1,0 +1,206 @@
+import { useState } from 'react'
+import { doc, updateDoc } from 'firebase/firestore'
+import { db } from '../firebase/config'
+import Icon from './Icon.jsx'
+import ToggleIOS from './ToggleIOS.jsx'
+
+// Modal de edición de la información pública del negocio (RF-06/RF-11):
+// nombre, descripción, dirección, contacto y horarios. Escribe directamente
+// sobre negocios/{uid}; OwnerLayout está suscrito con onSnapshot, así que
+// los cambios se reflejan solos en el resto del panel al guardar.
+
+const DIAS_FIJOS = [
+  { key: 'lunesAViernes', label: 'Lunes a viernes' },
+  { key: 'sabado', label: 'Sábado' },
+]
+
+// Domingo y festivos se editan por separado: cada uno tiene su propio
+// interruptor de "hay servicio" para permitir cualquier combinación (ambos
+// cerrados, solo uno de los dos, o ambos con su propio horario). Los
+// negocios creados antes de este cambio solo tienen "domingoFestivos": se
+// usa como valor inicial de ambos si no existen los campos nuevos.
+const DIAS_VARIABLES = [
+  { key: 'domingo', label: 'Domingo' },
+  { key: 'festivos', label: 'Festivos' },
+]
+
+export default function EditarNegocioModal({ negocio, uid, onClose }) {
+  const [form, setForm] = useState({
+    nombre: negocio.nombre || '',
+    descripcion: negocio.descripcion || '',
+    direccion: negocio.direccion || '',
+    correo: negocio.correo || '',
+    telefono: negocio.canalesContacto?.telefono || '',
+    whatsapp: negocio.canalesContacto?.whatsapp || '',
+    horarios: DIAS_FIJOS.reduce((acc, d) => {
+      acc[d.key] = {
+        apertura: negocio.horarios?.[d.key]?.apertura || '',
+        cierre: negocio.horarios?.[d.key]?.cierre || '',
+      }
+      return acc
+    }, DIAS_VARIABLES.reduce((acc, d) => {
+      const previo = negocio.horarios?.[d.key] || negocio.horarios?.domingoFestivos
+      acc[d.key] = {
+        activo: previo?.activo !== false,
+        apertura: previo?.apertura || '09:00',
+        cierre: previo?.cierre || '16:00',
+      }
+      return acc
+    }, {})),
+  })
+  const [error, setError] = useState('')
+  const [guardando, setGuardando] = useState(false)
+
+  function update(campo) {
+    return (e) => setForm((f) => ({ ...f, [campo]: e.target.value }))
+  }
+
+  function updateHorario(dia, campo) {
+    return (e) => setForm((f) => ({
+      ...f,
+      horarios: { ...f.horarios, [dia]: { ...f.horarios[dia], [campo]: e.target.value } },
+    }))
+  }
+
+  function toggleDia(dia) {
+    return (activo) => setForm((f) => ({
+      ...f,
+      horarios: { ...f.horarios, [dia]: { ...f.horarios[dia], activo } },
+    }))
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (!form.nombre.trim() || !form.direccion.trim()) {
+      setError('El nombre y la dirección son obligatorios.')
+      return
+    }
+    setError('')
+    setGuardando(true)
+    try {
+      await updateDoc(doc(db, 'negocios', uid), {
+        nombre: form.nombre.trim(),
+        descripcion: form.descripcion.trim(),
+        direccion: form.direccion.trim(),
+        correo: form.correo.trim(),
+        canalesContacto: {
+          ...negocio.canalesContacto,
+          telefono: form.telefono.trim(),
+          whatsapp: form.whatsapp.trim(),
+        },
+        horarios: form.horarios,
+      })
+      onClose()
+    } catch (err) {
+      setError('No se pudo guardar la información. Intenta de nuevo.')
+      // eslint-disable-next-line no-console
+      console.error(err)
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  return (
+    <div
+      role="presentation"
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, background: 'oklch(20% 0.01 0 / 0.45)', display: 'flex',
+        alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 20, overflowY: 'auto',
+      }}
+    >
+      <form
+        onSubmit={handleSubmit}
+        onClick={(e) => e.stopPropagation()}
+        className="card"
+        style={{ width: 560, maxWidth: '100%', padding: 22, maxHeight: '90vh', overflowY: 'auto' }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 17 }}>Editar información del negocio</div>
+            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>
+              Estos datos se muestran en tu vitrina pública.
+            </div>
+          </div>
+          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-faint)', cursor: 'pointer' }}>
+            <Icon name="x" size={18} />
+          </button>
+        </div>
+
+        <label style={{ fontSize: 12.5, fontWeight: 700, display: 'block', marginTop: 18 }}>Nombre del negocio</label>
+        <input value={form.nombre} onChange={update('nombre')} style={{ marginTop: 6 }} />
+
+        <label style={{ fontSize: 12.5, fontWeight: 700, display: 'block', marginTop: 14 }}>Descripción</label>
+        <textarea rows={2} value={form.descripcion} onChange={update('descripcion')} style={{ marginTop: 6, resize: 'vertical' }} />
+
+        <label style={{ fontSize: 12.5, fontWeight: 700, display: 'block', marginTop: 14 }}>Dirección</label>
+        <input value={form.direccion} onChange={update('direccion')} style={{ marginTop: 6 }} />
+
+        <div style={{ display: 'flex', gap: 12, marginTop: 14 }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: 12.5, fontWeight: 700, display: 'block' }}>Correo de contacto</label>
+            <input type="email" value={form.correo} onChange={update('correo')} placeholder="negocio@ejemplo.com" style={{ marginTop: 6 }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: 12.5, fontWeight: 700, display: 'block' }}>Teléfono</label>
+            <input type="tel" value={form.telefono} onChange={update('telefono')} style={{ marginTop: 6 }} />
+          </div>
+        </div>
+
+        <label style={{ fontSize: 12.5, fontWeight: 700, display: 'block', marginTop: 14 }}>WhatsApp</label>
+        <input type="tel" value={form.whatsapp} onChange={update('whatsapp')} style={{ marginTop: 6 }} />
+
+        <div style={{ fontSize: 12.5, fontWeight: 700, marginTop: 18, marginBottom: 8 }}>Horarios de atención</div>
+        {DIAS_FIJOS.map((d) => (
+          <div key={d.key} style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
+            <span style={{ fontSize: 12.5, color: 'var(--text-muted)', width: 120, flexShrink: 0 }}>{d.label}</span>
+            <input type="time" value={form.horarios[d.key].apertura} onChange={updateHorario(d.key, 'apertura')} style={{ flex: 1, minWidth: 0 }} />
+            <span style={{ color: 'var(--text-faint)', flexShrink: 0 }}>–</span>
+            <input type="time" value={form.horarios[d.key].cierre} onChange={updateHorario(d.key, 'cierre')} style={{ flex: 1, minWidth: 0 }} />
+          </div>
+        ))}
+
+        <div style={{ height: 1, background: 'var(--border)', margin: '14px 0' }} />
+
+        <div style={{ fontSize: 11.5, color: 'var(--text-faint)', marginBottom: 4 }}>
+          Activa o desactiva el servicio para cada uno de forma independiente.
+        </div>
+        {DIAS_VARIABLES.map((d) => {
+          const bloque = form.horarios[d.key]
+          return (
+            <div
+              key={d.key}
+              className="card"
+              style={{ padding: '10px 14px', marginTop: 8, background: 'var(--surface-2)' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                <span style={{ fontSize: 13, fontWeight: 700 }}>{d.label}</span>
+                <ToggleIOS checked={bloque.activo} onChange={toggleDia(d.key)} label={`Servicio los ${d.label.toLowerCase()}`} />
+              </div>
+              {bloque.activo ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
+                  <input type="time" value={bloque.apertura} onChange={updateHorario(d.key, 'apertura')} style={{ flex: 1, minWidth: 0 }} />
+                  <span style={{ color: 'var(--text-faint)', flexShrink: 0 }}>–</span>
+                  <input type="time" value={bloque.cierre} onChange={updateHorario(d.key, 'cierre')} style={{ flex: 1, minWidth: 0 }} />
+                </div>
+              ) : (
+                <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 6 }}>Sin servicio</div>
+              )}
+            </div>
+          )
+        })}
+
+        {error && <div className="error-text">{error}</div>}
+
+        <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+          <button type="button" onClick={onClose} className="btn btn-outline" style={{ flex: 1 }}>
+            Cancelar
+          </button>
+          <button type="submit" className="btn btn-primary" disabled={guardando} style={{ flex: 1 }}>
+            {guardando ? 'Guardando…' : 'Guardar cambios'}
+          </button>
+        </div>
+      </form>
+    </div>
+  )
+}

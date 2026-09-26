@@ -1,6 +1,9 @@
+import { useState } from 'react'
+import { useOutletContext } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
 import Icon from '../../components/Icon.jsx'
 import ToggleIOS from '../../components/ToggleIOS.jsx'
+import EditarNegocioModal from '../../components/EditarNegocioModal.jsx'
 
 // Configuración del panel del propietario. El modo oscuro de aquí es una
 // preferencia independiente de la del cliente (modoOscuroPanel vs.
@@ -9,6 +12,8 @@ import ToggleIOS from '../../components/ToggleIOS.jsx'
 // fuera de su panel (ver el efecto de tema en App.jsx).
 export default function OwnerConfiguracion() {
   const { modoOscuroPanel, actualizarModoOscuroPanel } = useAuth()
+  const { negocio, uid } = useOutletContext()
+  const [editando, setEditando] = useState(false)
 
   return (
     <div>
@@ -16,6 +21,21 @@ export default function OwnerConfiguracion() {
       <p style={{ color: 'var(--text-muted)', fontSize: 13.5, marginBottom: 20 }}>
         Preferencias de este panel.
       </p>
+
+      <div className="card" style={{ padding: 20, maxWidth: 420, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Icon name="edit" size={17} />
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 14.5 }}>Información del negocio</div>
+            <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 2 }}>
+              Horarios, dirección, correo y teléfono de contacto.
+            </div>
+          </div>
+        </div>
+        <button type="button" className="btn btn-outline" onClick={() => setEditando(true)}>
+          Editar información
+        </button>
+      </div>
 
       <div className="card" style={{ padding: 20, maxWidth: 420, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -29,6 +49,8 @@ export default function OwnerConfiguracion() {
         </div>
         <ToggleIOS checked={modoOscuroPanel} onChange={actualizarModoOscuroPanel} label="Modo oscuro del panel" />
       </div>
+
+      {editando && <EditarNegocioModal negocio={negocio} uid={uid} onClose={() => setEditando(false)} />}
     </div>
   )
 }
